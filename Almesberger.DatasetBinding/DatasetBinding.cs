@@ -199,6 +199,8 @@ namespace System.Windows.Forms.More.DatasetBinding
 
     public void SetDataSourceProperty(object control, string dataSourceProperty)
     {
+      if (string.IsNullOrWhiteSpace(dataSourceProperty))
+        return;
       this.SetProvidedProperty(control, dataSourceProperty);
     }
 
@@ -208,12 +210,15 @@ namespace System.Windows.Forms.More.DatasetBinding
     {
       var result = this.GetProvidedProperty<string>(control);
       return string.IsNullOrEmpty(result) 
-        ? TypeDescriptor.GetDefaultProperty(control).Name
+        ? TypeDescriptor.GetDefaultProperty(control)?.Name
         : result;
     }
 
     public void SetControlProperty(object control, string controlProperty)
-    {this.SetProvidedProperty(control, controlProperty);
+    {
+      if (controlProperty == null)
+        return;
+      this.SetProvidedProperty(control, controlProperty);
     }
 
     #endregion
@@ -234,6 +239,14 @@ namespace System.Windows.Forms.More.DatasetBinding
     {
       foreach (var binding in this.bindings)
         binding.WriteValue();
+    }
+
+    /// <summary>
+    /// Log to console.writeline for debugging purposes
+    /// </summary>
+    public void SetVerbose()
+    {
+      Logger.RegisterLoggingMethod(Console.WriteLine);
     }
 
     /// <summary>
@@ -279,15 +292,17 @@ namespace System.Windows.Forms.More.DatasetBinding
       foreach (var control in controls)
       {
         var controlPropertyName = controlPropertyNames[control];
-        var objectPropertyName = dataSourcePropertyNames[control];
+        var datasourcePropertyName = dataSourcePropertyNames[control];
 
-        if (string.IsNullOrWhiteSpace(objectPropertyName))
+        if (string.IsNullOrWhiteSpace(datasourcePropertyName))
           continue;
 
         try
         {
-          var controlPropertyBinding
-            = new ControlPropertyBinding(control, controlPropertyName, objectPropertyName, this.UpdateMode,
+          var controlPropertyBinding = new ControlPropertyBinding(control, 
+                                                                  controlPropertyName, 
+                                                                  datasourcePropertyName, 
+                                                                  this.UpdateMode,
               this.Validator);
 
           controlPropertyBinding.PropertyChanged += this.BindingStateChanged;
@@ -295,7 +310,7 @@ namespace System.Windows.Forms.More.DatasetBinding
         }
         catch (Exception ex)
         {
-          Logger.Log($"Could not bind control {control?.Name ?? "Unknown"} to property {objectPropertyName ?? "null"}", ex);
+          Logger.Log($"Could not bind control {control?.Name ?? "Unknown"} to property {datasourcePropertyName ?? "null"}", ex);
         }
 
         if(!this.defaultBackColor.ContainsKey(control))
@@ -375,7 +390,7 @@ namespace System.Windows.Forms.More.DatasetBinding
           binding.Control.BackColor = this.defaultBackColor[binding.Control];
       }
 
-      this.HasChanges = this.bindings.All(x => !x.IsDifferent);
+      this.HasChanges = this.bindings.Any(x => !x.IsDifferent);
 
     }
 

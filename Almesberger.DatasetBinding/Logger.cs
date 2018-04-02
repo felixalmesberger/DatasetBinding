@@ -5,16 +5,16 @@
 
     private static readonly Action<string> NullLogger = msg => { };
 
-    private static Action<string> LogMessage = NullLogger;
+    private static Action<string> logMessage = NullLogger;
 
     public static void RegisterLoggingMethod(Action<string> logMessage)
     {
-      LogMessage = logMessage;
+      Logger.logMessage = logMessage;
     }
 
     public static void Log(string msg, Exception ex = null)
     {
-      LogMessage?.Invoke(msg + "\n" + "Exception:" + ex);
+      logMessage?.Invoke(msg + "\n" + "Exception:" + ex);
     }
 
   }

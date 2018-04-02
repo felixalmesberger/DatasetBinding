@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Windows.Forms.More.DatasetBinding;
 
@@ -23,6 +19,7 @@ namespace TestApp
     public Form1()
     {
       this.InitializeComponent();
+      this.datasetBinding.SetVerbose();
     }
 
     protected override void OnLoad(EventArgs e)
@@ -31,9 +28,90 @@ namespace TestApp
       base.OnLoad(e);
     }
 
+    protected override void OnClosing(CancelEventArgs e)
+    {
+      if (!this.datasetBinding.HasChanges)
+        return;
+
+      //Unsaved changes, ask if really close
+      var reallyClose = MessageBox.Show(this, 
+                                        text: "Unsaved changes, really close?", 
+                                        caption: Application.ProductName,
+                                        buttons: MessageBoxButtons.YesNo);
+      if (reallyClose == DialogResult.No)
+        e.Cancel = true;
+
+      base.OnClosing(e);
+    }
+
     private void datasetBinding_ValidityChanged(object sender, EventArgs e)
     {
       this.btnOk.Enabled = (sender as DatasetBinding).IsValid;
+    }
+
+    private void btnOk_Click(object sender, EventArgs e)
+    {
+      this.datasetBinding.WriteBindings();
+    }
+
+    private void btnCancel_Click(object sender, EventArgs e)
+    {
+      this.Close();
+    }
+  }
+
+  public class User
+  {
+    [Required]
+    public string FirstName { get; set; }
+
+    [Required]
+    public string LastName { get; set; }
+
+    [Required]
+    [Mail]
+    public string Mail { get; set; }
+
+    [Required]
+    public string Username { get; set; }
+
+    [Required]
+    [WarnForWeakPassword]
+    public string Password { get; set; }
+
+  }
+
+  public class MailAttribute : ValidationAttribute
+  {
+    private static readonly Regex MailRegex = new Regex("^\\w+([-+.']\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$");
+
+    protected override ValidationResult IsValid(object value, ValidationContext ctx)
+    {
+      var mail = value as string;
+
+      if (mail == null)
+        return ValidationResult.Success;
+
+      return MailRegex.IsMatch(mail)
+        ? ValidationResult.Success
+        : new ValidationResult("Not a valid mail", new[] { ctx.MemberName });
+
+    }
+  }
+
+  public class WarnForWeakPasswordAttribute : ValidationAttribute
+  {
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+      var password = value as string;
+
+      if (password == null)
+        return ValidationResult.Success;
+
+      if (password.Length < 8)
+        return new ValidationResult("Password is weak.");
+      else
+        return ValidationResult.Success;
     }
   }
 }

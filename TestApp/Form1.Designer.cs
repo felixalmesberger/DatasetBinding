@@ -180,6 +180,7 @@ namespace TestApp
       this.btnCancel.TabIndex = 14;
       this.btnCancel.Text = "&Cancel";
       this.btnCancel.UseVisualStyleBackColor = true;
+      this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
       // 
       // pictureBox1
       // 
@@ -203,6 +204,7 @@ namespace TestApp
       this.btnOk.TabIndex = 16;
       this.btnOk.Text = "&Ok";
       this.btnOk.UseVisualStyleBackColor = true;
+      this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
       // 
       // userBindingSource
       // 
