@@ -43,10 +43,20 @@ namespace System.Windows.Forms.More.DatasetBinding.Validators
       var msgBuilder = new StringBuilder();
 
       var allControlValues = this.getControlValues();
-      var ctx = this.CreateValidationContext(instance, allControlValues);
+      var ctx = this.CreateValidationContext(instance, property.Name, allControlValues);
       foreach (var attribute in validationAttributes)
       {
-        var result = attribute.GetValidationResult(value, ctx);
+        ValidationResult result;
+        try
+        {
+          result = attribute.GetValidationResult(value,ctx);
+        }
+        catch (Exception ex)
+        {
+          var msg = $"Error in validation attribute {attribute.GetType()}.";
+          Logger.Log(msg, ex);
+          result = new ValidationResult(msg);
+        }
 
         if (result == ValidationResult.Success)
           continue;
@@ -84,13 +94,17 @@ namespace System.Windows.Forms.More.DatasetBinding.Validators
              || attribute.GetType().Name.ToUpper().Contains("WARN");
     }
 
-    private ValidationContext CreateValidationContext(object instance, Dictionary<string, object> allControlValues)
+    private ValidationContext CreateValidationContext(object instance, string memberName, Dictionary<string, object> allControlValues)
     {
 
       foreach (var additionalPropVal in this.PropertyValues)
         allControlValues.Add(additionalPropVal.Key.Name, additionalPropVal.Key.GetValue(additionalPropVal.Value));
-      
-      return new ValidationContext(instance, ServiceProvider, allControlValues.ToDictionary(x => (object)x.Key, x => x.Value));
+
+      var items = allControlValues.ToDictionary(x => (object) x.Key, x => x.Value);
+      return new ValidationContext(instance, ServiceProvider, items )
+      {
+        MemberName = memberName
+      };
     }
   }
 }
