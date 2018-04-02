@@ -49,8 +49,8 @@ namespace System.Windows.Forms.More.DatasetBinding
 
     #region constructor
 
-    internal ControlPropertyBinding(Control control, 
-                                  string controlPropertyName, 
+    internal ControlPropertyBinding(Control control,
+                                  string controlPropertyName,
                                   string objectPropertyName,
                                   UpdateMode updateMode,
                                   IValidator validator)
@@ -110,9 +110,16 @@ namespace System.Windows.Forms.More.DatasetBinding
         this.dataSource = value;
         if (this.dataSource != null)
         {
-          this.AttachToDataSourceChangedEvent();
-          this.InitializeDataSourceProperty();
-          this.InitializeTypeConverter();
+          try
+          {
+            this.AttachToDataSourceChangedEvent();
+            this.InitializeDataSourceProperty();
+            this.InitializeTypeConverter();
+          }
+          catch (Exception ex)
+          {
+            Logger.Log("Error while initializing datasource", ex);
+          }
         }
       }
     }
@@ -153,7 +160,7 @@ namespace System.Windows.Forms.More.DatasetBinding
       get => validationResult;
       set
       {
-        this.validationResult = value; 
+        this.validationResult = value;
         this.OnPropertyChanged();
       }
     }
@@ -189,19 +196,20 @@ namespace System.Windows.Forms.More.DatasetBinding
           return;
         }
 
-        this.objectValue = this.objectProperty.GetValue(this.DataSource);
-
-        //convert value type
-        object convertedValue;
-        if (typeConverter != null)
-          convertedValue = typeConverter.ConvertTo(this.objectValue, this.controlProperty.PropertyType);
-        else
-          convertedValue = this.objectValue;
-
-        convertedValue = Convert.ChangeType(convertedValue, this.controlProperty.PropertyType);
+        object convertedValue = null;
 
         try
         {
+          this.objectValue = this.objectProperty.GetValue(this.DataSource);
+
+          //convert value type
+          if (typeConverter != null)
+            convertedValue = typeConverter.ConvertTo(this.objectValue, this.controlProperty.PropertyType);
+          else
+            convertedValue = this.objectValue;
+
+          convertedValue = Convert.ChangeType(convertedValue, this.controlProperty.PropertyType);
+
           this.SetControlValue(convertedValue);
           this.ControlValue = convertedValue;
 
@@ -211,7 +219,7 @@ namespace System.Windows.Forms.More.DatasetBinding
         }
         catch (Exception ex)
         {
-          this.SetConversionError(convertedValue, this.controlProperty.PropertyType);
+          this.SetConversionError(convertedValue, this.controlProperty.PropertyType, this.ObjectPropertyName);
           Logger.Log($"Could not read value from property {this.ObjectPropertyName}.", ex);
         }
 
@@ -246,9 +254,9 @@ namespace System.Windows.Forms.More.DatasetBinding
           this.CheckDifference();
           this.Validate();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-          this.SetConversionError(this.ControlValue, this.objectProperty?.PropertyType);
+          this.SetConversionError(this.ControlValue, this.objectProperty?.PropertyType, this.ObjectPropertyName);
           Logger.Log($"Could not read value from control {this.Control?.Name ?? "null"}", ex);
         }
 
@@ -300,7 +308,7 @@ namespace System.Windows.Forms.More.DatasetBinding
     private void InitializeControlProperty()
     {
       this.controlProperty = this.Control.GetType().GetProperty(this.ControlPropertyName);
-      Throw.IfNull(this.controlProperty, 
+      Throw.IfNull(this.controlProperty,
         $"Could not find property {this.ControlPropertyName} in object of type {this.Control.GetType().Name}");
     }
 
@@ -399,7 +407,7 @@ namespace System.Windows.Forms.More.DatasetBinding
     private void CheckDifference()
     {
       //if both types are strings... dont make a difference between null and ""
-      if(this.controlProperty?.PropertyType == typeof(string)
+      if (this.controlProperty?.PropertyType == typeof(string)
         && this.objectProperty?.PropertyType == typeof(string)
         && string.IsNullOrWhiteSpace(this.controlValue as string)
         && string.IsNullOrWhiteSpace(this.objectValue as string)
@@ -460,9 +468,9 @@ namespace System.Windows.Forms.More.DatasetBinding
     /// If conversion failed from source to dest
     /// set validation result to conversion error
     /// </summary>
-    private void SetConversionError(object value, Type type)
+    private void SetConversionError(object value, Type type, string propertyName)
     {
-      this.ValidationResult = new ConversionFailure(value?.ToString(), type);
+      this.ValidationResult = new ConversionFailure(value?.ToString(), type, propertyName);
     }
 
     /// <summary>
@@ -481,9 +489,9 @@ namespace System.Windows.Forms.More.DatasetBinding
 
   public class ConversionFailure : ValidatorResult
   {
-    public ConversionFailure(string value, Type dest)
+    public ConversionFailure(string value, Type dest, string propertyName)
     {
-      this.ErrorMessage = $"Could not convert {value} to type {dest?.Name}";
+      this.ErrorMessage = $"Could not convert {value} to type {dest?.Name} in property {propertyName}";
       this.ValidationStatus = ValidationStatus.Error;
     }
   }

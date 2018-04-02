@@ -45,25 +45,25 @@ namespace System.Windows.Forms.More.DatasetBinding
     public Icon ErrorIcon
     {
       get => this.errorProvider.Icon;
-      set => this.errorProvider.Icon = value;
+      set => this.errorProvider.Icon = value ?? Properties.Resources.DefaultErrorIcon;
     }
 
     public Icon WarnIcon
     {
       get => this.warnProvider.Icon;
-      set => this.warnProvider.Icon = value;
+      set => this.warnProvider.Icon = value ?? Properties.Resources.DefaultWarnIcon;
     }
 
     public Icon RequiredIcon
     {
       get => this.requiredProvider.Icon;
-      set => this.requiredProvider.Icon = value;
+      set => this.requiredProvider.Icon = value ?? Properties.Resources.DefaultRequiredIcon;
     }
 
     public Icon PassIcon
     {
       get => this.passProvider.Icon;
-      set => this.passProvider.Icon = value;
+      set => this.passProvider.Icon = value ?? Properties.Resources.DefaultPassIcon;
     }
 
     public bool ShowPassIcon { get; set; }

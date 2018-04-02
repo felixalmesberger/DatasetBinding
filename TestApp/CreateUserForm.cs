@@ -34,10 +34,11 @@ namespace TestApp
         return;
 
       //Unsaved changes, ask if really close
-      var reallyClose = MessageBox.Show(this, 
+      var reallyClose = MessageBox.Show(owner: this, 
                                         text: "Unsaved changes, really close?", 
                                         caption: Application.ProductName,
-                                        buttons: MessageBoxButtons.YesNo);
+                                        buttons: MessageBoxButtons.YesNo,
+                                        icon: MessageBoxIcon.Asterisk);
       if (reallyClose == DialogResult.No)
         e.Cancel = true;
 
@@ -46,12 +47,17 @@ namespace TestApp
 
     private void datasetBinding_ValidityChanged(object sender, EventArgs e)
     {
-      this.btnOk.Enabled = (sender as DatasetBinding).IsValid;
+      this.btnOk.Enabled = ((DatasetBinding)sender).IsValid;
     }
 
     private void btnOk_Click(object sender, EventArgs e)
     {
       this.datasetBinding.WriteBindings();
+      MessageBox.Show(owner: this,
+                      text: "Created user.",
+                      caption: Application.ProductName,
+                      buttons: MessageBoxButtons.OK,
+                      icon: MessageBoxIcon.Information);
     }
 
     private void btnCancel_Click(object sender, EventArgs e)
@@ -89,7 +95,8 @@ namespace TestApp
     {
       var mail = value as string;
 
-      if (mail == null)
+      //only validate when content is there
+      if (string.IsNullOrWhiteSpace(mail))
         return ValidationResult.Success;
 
       return MailRegex.IsMatch(mail)
@@ -105,7 +112,8 @@ namespace TestApp
     {
       var password = value as string;
 
-      if (password == null)
+      //only validate when content is there
+      if (string.IsNullOrWhiteSpace(password))
         return ValidationResult.Success;
 
       if (password.Length < 8)

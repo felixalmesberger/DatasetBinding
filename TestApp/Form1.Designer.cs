@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Windows.Forms;
 using System.Windows.Forms.More.DatasetBinding;
 
 namespace TestApp
@@ -83,7 +84,7 @@ namespace TestApp
       // txtFirstName
       // 
       this.datasetBinding.SetControlProperty(this.txtFirstName, "Text");
-      this.datasetBinding.SetDataSourceProperty(this.txtFirstName, "FirstName");
+      this.datasetBinding.SetDataSourceProperty(this.txtFirstName, "s");
       this.txtFirstName.Location = new System.Drawing.Point(128, 8);
       this.txtFirstName.Name = "txtFirstName";
       this.txtFirstName.Size = new System.Drawing.Size(211, 20);
@@ -231,6 +232,7 @@ namespace TestApp
       this.Controls.Add(this.label1);
       this.datasetBinding.SetDataSourceProperty(this, null);
       this.Name = "Form1";
+      this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
       this.Text = "Create User";
       ((System.ComponentModel.ISupportInitialize)(this.datasetBinding)).EndInit();
       ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();

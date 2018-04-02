@@ -199,8 +199,6 @@ namespace System.Windows.Forms.More.DatasetBinding
 
     public void SetDataSourceProperty(object control, string dataSourceProperty)
     {
-      if (string.IsNullOrWhiteSpace(dataSourceProperty))
-        return;
       this.SetProvidedProperty(control, dataSourceProperty);
     }
 
@@ -216,8 +214,6 @@ namespace System.Windows.Forms.More.DatasetBinding
 
     public void SetControlProperty(object control, string controlProperty)
     {
-      if (controlProperty == null)
-        return;
       this.SetProvidedProperty(control, controlProperty);
     }
 
@@ -390,7 +386,7 @@ namespace System.Windows.Forms.More.DatasetBinding
           binding.Control.BackColor = this.defaultBackColor[binding.Control];
       }
 
-      this.HasChanges = this.bindings.Any(x => !x.IsDifferent);
+      this.HasChanges = this.bindings.Any(x => x.IsDifferent);
 
     }
 
